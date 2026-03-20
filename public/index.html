@@ -1,24 +1,108 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" dir="ltr">
   <head>
     <meta charset="utf-8" />
-    <link rel="icon" href="%PUBLIC_URL%/favicon.ico" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta name="theme-color" content="#4f46e5" />
-    <meta name="description" content="ERP Portal — Modern institutional management system for students, staff, finances, and reports." />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5" />
 
-    <!-- Inter Font from Google Fonts -->
+    <!-- Primary SEO Meta Tags -->
+    <title>CampusFlow ERP — Institutional Management Platform</title>
+    <meta name="title" content="CampusFlow ERP — Institutional Management Platform" />
+    <meta name="description" content="Production-grade ERP platform for educational institutions. Manage students, staff, attendance, timetables, assignments, grades, and analytics — all in one place." />
+    <meta name="keywords" content="ERP, education, college management, student portal, attendance, timetable, gradebook, assignments, institutional management, campus management" />
+    <meta name="author" content="CampusFlow" />
+    <meta name="robots" content="index, follow" />
+    <meta name="theme-color" content="#4f46e5" />
+
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://project1-d9e1a.web.app/" />
+    <meta property="og:title" content="CampusFlow ERP — Institutional Management Platform" />
+    <meta property="og:description" content="A world-class ERP for colleges and schools. Real-time attendance, grades, timetables, and analytics with role-based access control." />
+    <meta property="og:site_name" content="CampusFlow ERP" />
+
+    <!-- Twitter -->
+    <meta property="twitter:card" content="summary_large_image" />
+    <meta property="twitter:url" content="https://project1-d9e1a.web.app/" />
+    <meta property="twitter:title" content="CampusFlow ERP — Institutional Management Platform" />
+    <meta property="twitter:description" content="A world-class ERP for colleges and schools. Real-time attendance, grades, timetables, and analytics." />
+
+    <!-- Performance: Preconnect to critical origins -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+    <link rel="preconnect" href="https://firestore.googleapis.com" />
+    <link rel="preconnect" href="https://www.googleapis.com" />
 
-    <link rel="apple-touch-icon" href="%PUBLIC_URL%/logo192.png" />
+    <!-- Fonts: display=swap for non-blocking load -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet" />
+
+    <!-- Favicon & PWA -->
+    <link rel="icon" href="%PUBLIC_URL%/favicon.ico" />
+    <link rel="apple-touch-icon" sizes="180x180" href="%PUBLIC_URL%/logo192.png" />
     <link rel="manifest" href="%PUBLIC_URL%/manifest.json" />
 
-    <title>ERP Portal — Institutional Management</title>
+    <!-- Structured Data (JSON-LD) -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "WebApplication",
+      "name": "CampusFlow ERP",
+      "url": "https://project1-d9e1a.web.app",
+      "description": "Production-grade Enterprise Resource Planning platform for educational institutions with real-time data synchronization.",
+      "applicationCategory": "EducationalApplication",
+      "operatingSystem": "Web",
+      "offers": {
+        "@type": "Offer",
+        "price": "0",
+        "priceCurrency": "USD"
+      },
+      "featureList": [
+        "Role-based access control",
+        "Real-time attendance tracking",
+        "Dynamic timetable system",
+        "Assignment submission and grading",
+        "Analytics and reporting",
+        "10-theme personalization engine"
+      ]
+    }
+    </script>
+
+    <!-- Performance: Inline critical loading styles -->
+    <style>
+      /* Critical CSS for initial load */
+      body { margin: 0; font-family: 'Inter', system-ui, -apple-system, sans-serif; }
+      #root { min-height: 100vh; }
+      .app-loader {
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: #fafaf9;
+      }
+      .app-loader-spinner {
+        width: 48px; height: 48px;
+        border-radius: 16px;
+        background: linear-gradient(135deg, #4f46e5, #818cf8);
+        display: flex; align-items: center; justify-content: center;
+        animation: pulse 1.5s ease-in-out infinite;
+      }
+      @keyframes pulse {
+        0%, 100% { opacity: 1; transform: scale(1); }
+        50% { opacity: 0.7; transform: scale(0.95); }
+      }
+    </style>
   </head>
   <body>
-    <noscript>You need to enable JavaScript to run this app.</noscript>
-    <div id="root"></div>
+    <noscript>You need to enable JavaScript to run CampusFlow ERP.</noscript>
+    <div id="root">
+      <!-- Critical loading state rendered before JS hydration -->
+      <div class="app-loader" id="initial-loader">
+        <div class="app-loader-spinner">
+          <svg width="24" height="24" fill="none" viewBox="0 0 24 24" stroke="white" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+          </svg>
+        </div>
+      </div>
+    </div>
   </body>
 </html>
