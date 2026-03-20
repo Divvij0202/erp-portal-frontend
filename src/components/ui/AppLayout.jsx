@@ -1,4 +1,4 @@
-// AppLayout.jsx — Layout shell wrapping sidebar + topbar + content area
+// AppLayout.jsx — Layout shell with theme-aware styling
 import React, { useState } from 'react';
 import Sidebar from './Sidebar';
 import TopBar from './TopBar';
@@ -8,7 +8,7 @@ export default function AppLayout({ children, title }) {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(true);
 
   return (
-    <div className="flex h-screen bg-surface-50 overflow-hidden">
+    <div className="flex h-screen overflow-hidden" style={{ backgroundColor: 'var(--bg)', color: 'var(--text)', transition: 'background-color 0.3s ease, color 0.3s ease' }}>
       {/* Toast notifications */}
       <Toaster
         position="top-right"
@@ -16,8 +16,9 @@ export default function AppLayout({ children, title }) {
           duration: 4000,
           style: {
             borderRadius: '12px',
-            background: '#1c1917',
-            color: '#fafaf9',
+            background: 'var(--bg-card)',
+            color: 'var(--text)',
+            border: '1px solid var(--border)',
             fontSize: '14px',
           },
           success: {

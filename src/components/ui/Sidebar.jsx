@@ -1,32 +1,15 @@
-// Sidebar.jsx — Collapsible sidebar navigation with RBAC filtering
+// Sidebar.jsx — Theme-aware sidebar with profile avatar
 import React from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import { auth } from '../../firebase';
 import { signOut } from 'firebase/auth';
 import { useAuth } from '../../contexts/AuthContext';
 import {
-  LayoutDashboard,
-  GraduationCap,
-  DollarSign,
-  Users,
-  BarChart3,
-  Settings,
-  LogOut,
-  ChevronLeft,
-  ChevronRight,
-  BookOpen,
-  UserCheck,
-  ClipboardList,
-  Bell,
-  User,
-  CalendarCheck,
-  Network,
-  History,
-  FileText,
-  CalendarClock
+  LayoutDashboard, GraduationCap, DollarSign, Users, BarChart3, Settings, LogOut,
+  ChevronLeft, ChevronRight, BookOpen, UserCheck, ClipboardList, Bell, User,
+  CalendarCheck, Network, History, FileText, CalendarClock
 } from 'lucide-react';
 
-// Navigation items with role-based access
 const navConfig = [
   { label: 'Dashboard', icon: LayoutDashboard, path: '/', roles: ['admin', 'staff', 'student'] },
   { label: 'Academic Structure', icon: Network, path: '/academic-structure', roles: ['admin'] },
@@ -47,9 +30,7 @@ const navConfig = [
 
 export default function Sidebar({ collapsed, setCollapsed }) {
   const navigate = useNavigate();
-  const { userRole } = useAuth();
-  
-  // Default to student if role is undefined
+  const { userRole, userData } = useAuth();
   const currentRole = userRole || 'student';
   const allowedNavItems = navConfig.filter((item) => item.roles.includes(currentRole));
 
@@ -62,19 +43,24 @@ export default function Sidebar({ collapsed, setCollapsed }) {
     }
   };
 
+  const initials = userData?.name?.charAt(0)?.toUpperCase() || 'U';
+
   return (
     <>
-      <div className={`fixed inset-0 bg-black/30 z-40 lg:hidden ${collapsed ? 'hidden' : 'block'}`} onClick={() => setCollapsed(true)} />
+      <div className={`fixed inset-0 z-40 lg:hidden ${collapsed ? 'hidden' : 'block'}`} style={{ backgroundColor: 'rgba(0,0,0,0.3)' }} onClick={() => setCollapsed(true)} />
       <aside
-        className={`fixed top-0 left-0 z-50 h-screen bg-white border-r border-surface-200 flex flex-col transition-all duration-300 ease-out ${collapsed ? 'w-[72px]' : 'w-64'} lg:relative lg:z-auto ${collapsed ? '-translate-x-full lg:translate-x-0' : 'translate-x-0'}`}
+        className={`fixed top-0 left-0 z-50 h-screen flex flex-col transition-all duration-300 ease-out ${collapsed ? 'w-[72px]' : 'w-64'} lg:relative lg:z-auto ${collapsed ? '-translate-x-full lg:translate-x-0' : 'translate-x-0'}`}
+        style={{ backgroundColor: 'var(--sidebar-bg)', borderRight: '1px solid var(--border)', transition: 'background-color 0.3s ease, border-color 0.3s ease' }}
       >
-        <div className="flex items-center gap-3 px-5 h-16 border-b border-surface-100 shrink-0">
-          <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-primary-600 to-primary-400 flex items-center justify-center shrink-0">
-            <BookOpen className="w-4 h-4 text-white" />
+        {/* Brand */}
+        <div className="flex items-center gap-3 px-5 h-16 shrink-0" style={{ borderBottom: '1px solid var(--border)' }}>
+          <div className="w-8 h-8 rounded-xl flex items-center justify-center shrink-0" style={{ background: 'linear-gradient(135deg, var(--primary), var(--accent))' }}>
+            <BookOpen className="w-4 h-4" style={{ color: 'var(--text-inverted)' }} />
           </div>
-          {!collapsed && <span className="font-bold text-lg text-surface-900 whitespace-nowrap animate-fade-in">ERP Portal</span>}
+          {!collapsed && <span className="font-bold text-lg whitespace-nowrap animate-fade-in" style={{ color: 'var(--text)' }}>ERP Portal</span>}
         </div>
 
+        {/* Nav Items */}
         <nav className="flex-1 py-4 px-3 space-y-1 overflow-y-auto">
           {allowedNavItems.map(({ label, icon: Icon, path }) => (
             <NavLink
@@ -82,7 +68,11 @@ export default function Sidebar({ collapsed, setCollapsed }) {
               to={path}
               end={path === '/'}
               onClick={() => { if (window.innerWidth < 1024) setCollapsed(true); }}
-              className={({ isActive }) => `flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 ${isActive ? 'bg-primary-50 text-primary-700 shadow-soft' : 'text-surface-600 hover:bg-surface-50 hover:text-surface-900'} ${collapsed ? 'justify-center' : ''}`}
+              className={({ isActive }) => `flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 ${collapsed ? 'justify-center' : ''}`}
+              style={({ isActive }) => ({
+                backgroundColor: isActive ? 'var(--primary-light)' : 'transparent',
+                color: isActive ? 'var(--primary)' : 'var(--text-muted)',
+              })}
             >
               <Icon className="w-5 h-5 shrink-0" />
               {!collapsed && <span className="animate-fade-in">{label}</span>}
@@ -90,12 +80,30 @@ export default function Sidebar({ collapsed, setCollapsed }) {
           ))}
         </nav>
 
-        <div className="border-t border-surface-100 p-3 space-y-1 shrink-0">
-          <button onClick={handleLogout} className={`flex items-center gap-3 px-3 py-2.5 rounded-xl w-full text-sm font-medium text-red-600 hover:bg-red-50 transition-all duration-200 ${collapsed ? 'justify-center' : ''}`}>
+        {/* Bottom: User Card + Logout */}
+        <div className="p-3 space-y-2 shrink-0" style={{ borderTop: '1px solid var(--border)' }}>
+          {/* Mini Profile */}
+          {!collapsed && (
+            <div className="flex items-center gap-3 px-3 py-2 rounded-xl mb-1" style={{ backgroundColor: 'var(--bg-secondary)' }}>
+              {userData?.photoURL ? (
+                <img src={userData.photoURL} alt="Avatar" className="w-8 h-8 rounded-lg object-cover shrink-0" />
+              ) : (
+                <div className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0 text-xs font-bold" style={{ backgroundColor: 'var(--primary)', color: 'var(--text-inverted)' }}>
+                  {initials}
+                </div>
+              )}
+              <div className="min-w-0">
+                <p className="text-sm font-bold truncate" style={{ color: 'var(--text)' }}>{userData?.name || 'User'}</p>
+                <p className="text-xs truncate capitalize" style={{ color: 'var(--text-muted)' }}>{currentRole}</p>
+              </div>
+            </div>
+          )}
+
+          <button onClick={handleLogout} className={`flex items-center gap-3 px-3 py-2.5 rounded-xl w-full text-sm font-medium text-red-500 hover:bg-red-500/10 transition-all duration-200 ${collapsed ? 'justify-center' : ''}`}>
             <LogOut className="w-5 h-5 shrink-0" />
             {!collapsed && <span>Logout</span>}
           </button>
-          <button onClick={() => setCollapsed(!collapsed)} className="hidden lg:flex items-center justify-center w-full py-2 rounded-xl text-surface-400 hover:bg-surface-100 hover:text-surface-600 transition-colors">
+          <button onClick={() => setCollapsed(!collapsed)} className="hidden lg:flex items-center justify-center w-full py-2 rounded-xl transition-colors" style={{ color: 'var(--text-muted)' }}>
             {collapsed ? <ChevronRight className="w-4 h-4" /> : <ChevronLeft className="w-4 h-4" />}
           </button>
         </div>
