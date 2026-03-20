@@ -1,70 +1,149 @@
-# Getting Started with Create React App
+# CampusFlow ERP - Enterprise Educational Platform
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+<p align="center">
+  <img src="https://img.shields.io/badge/React-20232A?style=for-the-badge&logo=react&logoColor=61DAFB" alt="React" />
+  <img src="https://img.shields.io/badge/Firebase-FFCA28?style=for-the-badge&logo=firebase&logoColor=black" alt="Firebase" />
+  <img src="https://img.shields.io/badge/Tailwind_CSS-38B2AC?style=for-the-badge&logo=tailwind-css&logoColor=white" alt="Tailwind CSS" />
+  <img src="https://img.shields.io/badge/Status-Production_Ready-success?style=for-the-badge" alt="Status" />
+</p>
 
-## Available Scripts
+## 📖 Project Overview
+CampusFlow ERP is a world-class, production-ready Enterprise Resource Planning (ERP) platform designed specifically for modern educational institutions. Built with a premium, Notion/Linear-inspired UI, it handles the entire academic lifecycle from user management and complex timetable scheduling to real-time attendance tracking and asynchronous grading workflows.
 
-In the project directory, you can run:
+Unlike standard mockups, CampusFlow operates entirely on structured, relational data leveraging Firebase's real-time capabilities to ensure instant synchronization across all users without manual refreshing.
 
-### `npm start`
+### ✨ Key Features (Real-World Workflows)
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+**🛡️ Role-Based Access Control (RBAC)**
+Secure, isolated dashboards meticulously tailored for **Admins**, **Staff**, and **Students**. Routes and data access are strictly protected at the component and database level.
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+**🏛️ Academic Structure & User Management**
+- Manage complex hierarchies: Departments → Courses → Sections → Students.
+- Instructors are assigned dynamically to courses and sections.
 
-### `npm test`
+**📅 Dynamic Timetable System**
+- Full weekly grid visualization.
+- Admins/Staff map course slots to physical times; Students receive a personalized, filtered view based on their exact enrollments.
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+**✅ Session-Based Attendance**
+- Moving beyond simple toggles, Staff create specific session instances (Date/Time/Course).
+- Instant percentage aggregates and low-attendance visual warnings (e.g., < 75%) flag at-risk students immediately.
 
-### `npm run build`
+**📊 Evaluation & Gradebook Pipeline**
+- Staff can define assignments with strict rubrics and deadlines.
+- Students submit links/files directly to the portal.
+- Gradebook acts as a centralized ledger, breaking down marks per assignment and providing cumulative course grades.
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+**📩 Requests & Approval Workflows**
+- Students submit structured requests (Leave of Absence, Grade Review, Inquiries).
+- Admins/Staff process a unified queue with approval/rejection states and feedback comments.
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+**📣 Targeted Announcements**
+- Broadcast vital information system-wide, or target granularly by **Role** (Students only), **Course**, or even specific **Sections**.
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+**📈 Analytics & Reporting Dashboard**
+- Live Recharts-powered analytics for attendance trends.
+- PDF and CSV export capabilities for institutional data portability.
+- Comprehensive tracking over the current academic year settings.
 
-### `npm run eject`
+**🕵️ Audit Logs**
+- Every critical admin/staff action (updating grades, changing settings, deleting records) is logged permanently to ensure institutional accountability.
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
+---
 
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+## 💻 Tech Stack
+- **Frontend Core**: React 18, React Router DOM v6
+- **Styling**: Tailwind CSS (Premium aesthetic with custom `surface` color palettes, dark mode support)
+- **Backend / Database**: Firebase v10 (Firestore Database, Firebase Authentication)
+- **Data Visualization**: Recharts
+- **Icons**: Lucide React
+- **Exporting Modules**: jsPDF, PapaParse
+- **State/Feedback**: React Hot Toast
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
+---
 
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
+## 🚀 Setup & Installation (Local Development)
 
-## Learn More
+1. **Clone the repository:**
+   ```bash
+   git clone <your-repo-url>
+   cd erp-portal-frontend
+   ```
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+2. **Install dependencies:**
+   ```bash
+   npm install
+   ```
+   *(Note: This project uses `craco` to override config for Tailwind setup)*
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+3. **Firebase Configuration:**
+   - Create a project on the [Firebase Console](https://console.firebase.google.com/).
+   - Enable **Authentication** (Email/Password) and **Firestore Database**.
+   - Copy your config keys into a `.env` file at the root:
+     ```env
+     REACT_APP_FIREBASE_API_KEY=your_api_key
+     REACT_APP_FIREBASE_AUTH_DOMAIN=your_domain.firebaseapp.com
+     REACT_APP_FIREBASE_PROJECT_ID=your_project_id
+     REACT_APP_FIREBASE_STORAGE_BUCKET=your_bucket
+     REACT_APP_FIREBASE_MESSAGING_SENDER_ID=your_sender_id
+     REACT_APP_FIREBASE_APP_ID=your_app_id
+     ```
 
-### Code Splitting
+4. **Start the development server:**
+   ```bash
+   npm start
+   ```
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
+---
 
-### Analyzing the Bundle Size
+## 🌐 Production Deployment (100% Free Tier)
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
+This ERP was built from the ground up to operate securely and cleanly on Firebase's free **Spark Plan**. 
 
-### Making a Progressive Web App
+**Deploy via Firebase CLI:**
+1. Log in to Firebase:
+   ```bash
+   npx firebase-tools login
+   ```
+2. Initialize Firebase Hosting:
+   ```bash
+   npx firebase-tools init hosting
+   ```
+   - *Select your project.*
+   - *Set public directory to `build`.*
+   - *Configure as a single-page app (Rewrite all URLs to `/index.html`: Yes).*
+3. Build the production application:
+   ```bash
+   npm run build
+   ```
+4. Deploy globally to CDN:
+   ```bash
+   npx firebase-tools deploy --only hosting
+   ```
+   *Your live application will be served at `https://<your-project-id>.web.app`.*
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
+---
 
-### Advanced Configuration
+## 🗂️ Folder Structure
+```text
+src/
+├── components/          # Reusable UI elements (Buttons, Layouts, Cards, Modals)
+├── contexts/            # Global React Contexts (AuthContext)
+├── pages/               # Primary Page Views
+│   ├── dashboards/      # Role-specific landing dashboards
+│   ├── AcademicStructure.jsx
+│   ├── Announcements.jsx
+│   ├── Assignments.jsx
+│   ├── Attendance.jsx
+│   ├── Requests.jsx
+│   ├── Settings.jsx
+│   ├── StudentRecords.jsx
+│   ├── Timetable.jsx
+│   └── ...
+├── utils/               # Helper scripts (auditLogger.js)
+├── App.js               # Route Configuration & Protection Matrix
+└── firebase.js          # Direct Firebase initialization
+```
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
-
-### Deployment
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
-
-### `npm run build` fails to minify
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+---
+*Built autonomously by Antigravity—engineered for scale, speed, and real-world utility.*
