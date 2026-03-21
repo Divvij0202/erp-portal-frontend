@@ -1,0 +1,1 @@
+import{P as e,D as c,a as i,d as l,E as n}from"./index-1liz9H3_.js";const u=async(r,t,a,s={})=>{try{const o=e.currentUser;if(!o)return;await c(i(l,"audit_logs"),{action:r,collection:t,docId:a,userId:o.uid,timestamp:n(),details:s})}catch(o){console.error("Failed to log action:",o)}};export{u as l};

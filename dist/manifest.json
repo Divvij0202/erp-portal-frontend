@@ -1,0 +1,17 @@
+{
+  "short_name": "CampusFlow",
+  "name": "CampusFlow ERP — Institutional Management",
+  "icons": [
+    {
+      "src": "favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ],
+  "start_url": ".",
+  "display": "standalone",
+  "theme_color": "#4f46e5",
+  "background_color": "#fafaf9",
+  "description": "Production-grade ERP platform for educational institutions"
+}

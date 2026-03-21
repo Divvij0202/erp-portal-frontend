@@ -1,0 +1,6 @@
+import{j as a}from"./index-1liz9H3_.js";const b={success:"bg-emerald-50 text-emerald-700 border-emerald-200",warning:"bg-amber-50 text-amber-700 border-amber-200",danger:"bg-red-50 text-red-700 border-red-200",info:"bg-blue-50 text-blue-700 border-blue-200",neutral:"bg-surface-100 text-surface-600 border-surface-200",primary:"bg-primary-50 text-primary-700 border-primary-200"};function d({children:e,variant:r="neutral",className:t=""}){return a.jsx("span",{className:`
+        inline-flex items-center px-2.5 py-0.5 rounded-full
+        text-xs font-medium border capitalize
+        ${b[r]}
+        ${t}
+      `,children:e})}export{d as B};
