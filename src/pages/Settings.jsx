@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { db, auth, storage } from '../firebase';
 import { updatePassword, sendPasswordResetEmail } from 'firebase/auth';
-import { doc, getDoc, setDoc, updateDoc } from 'firebase/firestore';
+import { doc, getDoc, setDoc, updateDoc, collection } from 'firebase/firestore';
 import { ref, uploadBytes, getDownloadURL, deleteObject } from 'firebase/storage';
 import toast from 'react-hot-toast';
 
@@ -14,10 +14,21 @@ import AppLayout from '../components/ui/AppLayout';
 import Card, { CardHeader, CardBody } from '../components/ui/Card';
 import Input from '../components/ui/Input';
 import Button from '../components/ui/Button';
-import {
-  User, Mail, Lock, Settings as SettingsIcon, Shield, Send, Sliders, Save,
-  Camera, Trash2, Check, Palette
-} from 'lucide-react';
+import { User, Mail, Lock, Settings as SettingsIcon, Shield, Send, Sliders, Save,
+  Camera, Trash2, Check, Palette, Database } from 'lucide-react';
+
+const BITS_COURSES = [
+  { code: "CS F111", title: "COMPUTER PROGRAMMING", department: "Computer Science", credits: 4, instructor: "R GURURAJ", room: "F105", days: ["Tue", "Thu"], startTime: "09:00", endTime: "09:50", studentsEnrolled: 120 },
+  { code: "CS F211", title: "DATA STRUCTURES & ALGO", department: "Computer Science", credits: 4, instructor: "LALITA BHANU MURTHY NETI", room: "F102", days: ["Tue", "Thu"], startTime: "16:00", endTime: "16:50", studentsEnrolled: 85 },
+  { code: "CS F212", title: "DATA BASE SYSTEMS", department: "Computer Science", credits: 4, instructor: "PRAJNA DEVI UPADHYAY", room: "F102", days: ["Mon", "Wed", "Fri"], startTime: "08:00", endTime: "08:50", studentsEnrolled: 95 },
+  { code: "CS F213", title: "OBJECT ORIENTED PROG", department: "Computer Science", credits: 4, instructor: "ABHIJIT DAS", room: "F106", days: ["Tue", "Thu"], startTime: "14:00", endTime: "15:30", studentsEnrolled: 90 },
+  { code: "BITS F111", title: "THERMODYNAMICS", department: "Mechanical", credits: 3, instructor: "RAMENDRA KISHOR PAL", room: "F103", days: ["Tue", "Thu"], startTime: "11:30", endTime: "13:00", studentsEnrolled: 200 },
+  { code: "BIO F101", title: "INTRODUCTION TO BIOLOGICAL SCIENCE", department: "Biology", credits: 3, instructor: "DEBASRI BANDYOPADHYAY", room: "F102", days: ["Tue", "Thu"], startTime: "09:30", endTime: "11:00", studentsEnrolled: 150 },
+  { code: "EEE F111", title: "ELECTRICAL SCIENCES", department: "Electrical", credits: 3, instructor: "AMIT KUMAR PANDA", room: "F104", days: ["Mon", "Wed", "Fri"], startTime: "09:30", endTime: "11:00", studentsEnrolled: 180 },
+  { code: "MATH F113", title: "PROBABILITY AND STATISTICS", department: "Mathematics", credits: 3, instructor: "FARIDA PARVEZ BARBHUIYA", room: "F103", days: ["Mon", "Wed", "Fri"], startTime: "11:30", endTime: "13:00", studentsEnrolled: 160 },
+  { code: "BITS F225", title: "ENVIRONMENTAL STUDIES", department: "Humanities", credits: 3, instructor: "JAGADEESH ANMALA", room: "F105", days: ["Mon", "Wed", "Fri"], startTime: "14:00", endTime: "15:30", studentsEnrolled: 250 },
+  { code: "ME F218", title: "ADVANCED MECHANICS OF SOLIDS", department: "Mechanical", credits: 2, instructor: "VUPPULURI AMOL", room: "F107", days: ["Tue", "Thu"], startTime: "16:00", endTime: "17:30", studentsEnrolled: 110 }
+];
 
 const MAX_FILE_SIZE = 2 * 1024 * 1024;
 const ALLOWED_TYPES = ['image/jpeg', 'image/png'];
@@ -137,6 +148,35 @@ function Settings() {
       await sendPasswordResetEmail(auth, auth.currentUser.email);
       toast.success('Password reset email sent');
     } catch (err) { toast.error(err.message); }
+  };
+
+  const handleSeedDatabase = async () => {
+    if (!window.confirm("This will inject the BITS Pilani Semester II 2025-26 Timetable into the live database. Continue?")) return;
+    setIsLoading(true);
+    try {
+      toast.loading("Deploying BITS Pilani Courses & Timetable...", { id: 'seed' });
+      for (const course of BITS_COURSES) {
+        // Add course
+        const cRef = await setDoc(doc(collection(db, 'courses')), {
+          code: course.code, title: course.title, department: course.department,
+          credits: course.credits, description: `Official BITS Pilani course. Instructor: ${course.instructor}`
+        });
+
+        // Add timetable slots
+        for (const day of course.days) {
+          await setDoc(doc(collection(db, 'timetable')), {
+            courseId: cRef.id, courseCode: course.code, courseName: course.title,
+            day: day, startTime: course.startTime, endTime: course.endTime,
+            room: course.room, instructor: course.instructor, section: "L1", type: "Lecture"
+          });
+        }
+      }
+      toast.success("BITS Pilani Demo Data Injected Successfully!", { id: 'seed' });
+    } catch (err) {
+      toast.error(err.message, { id: 'seed' });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const Toggle = ({ checked, onChange, id }) => (
@@ -302,6 +342,17 @@ function Settings() {
                     <p className="text-xs" style={{ color: 'var(--text-muted)' }}>Instructors can override per assignment</p>
                   </div>
                   <Toggle id="allowLate" checked={allowLateSubmissions} onChange={(e) => setAllowLateSubmissions(e.target.checked)} />
+                </div>
+                
+                {/* Seed Button */}
+                <div className="rounded-xl p-4 flex flex-col sm:flex-row items-center justify-between gap-4 border border-dashed border-red-300 bg-red-50/50">
+                  <div>
+                    <p className="font-bold text-red-900 flex items-center gap-2"><Database className="w-4 h-4"/> Next-Level Personalization</p>
+                    <p className="text-xs text-red-700">Injects Semester II 2025-26 BITS Pilani Timetable Data (Courses, Rooms, Professors). Click once to transform the dashboard!</p>
+                  </div>
+                  <Button type="button" onClick={handleSeedDatabase} variant="secondary" className="shrink-0 text-red-700 bg-white hover:bg-red-50 border-red-300 shadow-sm border">
+                    Seed BITS Pilani Data
+                  </Button>
                 </div>
               </CardBody>
             </Card>

@@ -58,13 +58,13 @@ function Signup({ goToLogin }) {
     try {
       const userCredential = await createUserWithEmailAndPassword(auth, formData.email, formData.password);
       
-      // Save user profile to Firestore with the selected role
-      await setDoc(doc(db, 'users', userCredential.user.uid), {
+      // Save user registration to the requests collection
+      await setDoc(doc(db, 'requests', userCredential.user.uid), {
         email: formData.email,
-        role: formData.role,
+        role_requested: formData.role,
         name: formData.email.split('@')[0], // Extract name from email as default
-        status: 'active',
-        createdAt: serverTimestamp(),
+        status: 'pending',
+        timestamp: serverTimestamp(),
       });
 
       setSuccessMessage('Account created successfully!');

@@ -1,9 +1,12 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import AppLayout from '../components/ui/AppLayout';
 import Card, { CardBody, CardHeader } from '../components/ui/Card';
 import Badge from '../components/ui/Badge';
 import Button from '../components/ui/Button';
+import Input from '../components/ui/Input';
+import Modal from '../components/ui/Modal';
 import { useAuth } from '../contexts/AuthContext';
+import { useTheme } from '../contexts/ThemeContext';
 import { db, storage } from '../firebase';
 import { doc, updateDoc } from 'firebase/firestore';
 import { ref, uploadBytes, getDownloadURL, deleteObject } from 'firebase/storage';
@@ -15,11 +18,45 @@ const ALLOWED_TYPES = ['image/jpeg', 'image/png'];
 
 export default function MyProfile() {
   const { userData, currentUser } = useAuth();
+  const { theme, setTheme, themes } = useTheme();
+
   const [uploading, setUploading] = useState(false);
   const [preview, setPreview] = useState(null);
   const fileInputRef = useRef(null);
 
-  if (!userData) return null;
+  const [editModal, setEditModal] = useState(false);
+  const [formData, setFormData] = useState({ name: '', phone: '', bio: '' });
+  const [savingProfile, setSavingProfile] = useState(false);
+
+  useEffect(() => {
+    if (userData && !editModal) {
+      setFormData({
+        name: userData.name || '',
+        phone: userData.phone || '',
+        bio: userData.bio || ''
+      });
+    }
+  }, [userData, editModal]);
+
+  const handleSaveProfile = async (e) => {
+    e.preventDefault();
+    setSavingProfile(true);
+    try {
+      await updateDoc(doc(db, 'users', currentUser.uid), {
+        name: formData.name,
+        phone: formData.phone,
+        bio: formData.bio
+      });
+      toast.success('Profile updated');
+      setEditModal(false);
+    } catch (err) {
+      toast.error('Failed to update profile');
+    } finally {
+      setSavingProfile(false);
+    }
+  };
+
+  if (!userData || !themes) return null;
 
   const validateFile = (file) => {
     if (!ALLOWED_TYPES.includes(file.type)) {
@@ -163,6 +200,25 @@ export default function MyProfile() {
         {/* Details Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <Card>
+            <CardHeader className="flex justify-between items-center pb-3" style={{ borderBottom: '1px solid var(--border)' }}>
+              <h3 className="text-lg font-bold flex items-center gap-2" style={{ color: 'var(--text)' }}>
+                <User className="w-5 h-5" style={{ color: 'var(--primary)' }} /> Personal Details
+              </h3>
+              <Button size="sm" variant="secondary" onClick={() => setEditModal(true)}>Edit Info</Button>
+            </CardHeader>
+            <CardBody className="space-y-4 pt-4">
+              <div className="flex justify-between items-center py-2" style={{ borderBottom: '1px solid var(--border)' }}>
+                <span style={{ color: 'var(--text-muted)' }} className="font-medium">Phone Number</span>
+                <span className="font-medium" style={{ color: 'var(--text)' }}>{userData.phone || 'Not provided'}</span>
+              </div>
+              <div className="flex flex-col py-2" style={{ borderBottom: '1px solid var(--border)' }}>
+                <span style={{ color: 'var(--text-muted)' }} className="font-medium mb-1">Bio / Headline</span>
+                <span className="text-sm leading-relaxed" style={{ color: 'var(--text)' }}>{userData.bio || 'No bio provided. Click Edit Info to add one.'}</span>
+              </div>
+            </CardBody>
+          </Card>
+
+          <Card>
             <CardHeader>
               <h3 className="text-lg font-bold flex items-center gap-2" style={{ color: 'var(--text)' }}>
                 <Shield className="w-5 h-5" style={{ color: 'var(--primary)' }} /> Account Status
@@ -212,7 +268,58 @@ export default function MyProfile() {
               </div>
             </CardBody>
           </Card>
+
+          <Card className="md:col-span-2">
+            <CardHeader>
+              <h3 className="text-lg font-bold flex items-center gap-2" style={{ color: 'var(--text)' }}>
+                <ImageIcon className="w-5 h-5" style={{ color: 'var(--primary)' }} /> Interface Theme Settings
+              </h3>
+            </CardHeader>
+            <CardBody>
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-4">
+                {Object.entries(themes).map(([key, t]) => (
+                  <button
+                    key={key}
+                    onClick={() => setTheme(key)}
+                    className="flex flex-col items-center justify-center p-3 rounded-xl border-2 transition-all cursor-pointer"
+                    style={{ 
+                      backgroundColor: theme === key ? 'var(--primary-light)' : 'var(--bg-secondary)', 
+                      borderColor: theme === key ? 'var(--primary)' : 'transparent',
+                      transform: theme === key ? 'scale(1.02)' : 'scale(1)',
+                      boxShadow: theme === key ? 'var(--shadow)' : 'none'
+                    }}
+                  >
+                    <span className="text-2xl mb-2">{t.emoji}</span>
+                    <span className="text-xs font-bold text-center" style={{ color: 'var(--text)' }}>{t.name}</span>
+                  </button>
+                ))}
+              </div>
+            </CardBody>
+          </Card>
         </div>
+
+        {/* Edit Profile Modal */}
+        <Modal isOpen={editModal} onClose={() => setEditModal(false)} title="Edit Profile Info">
+          <form onSubmit={handleSaveProfile} className="space-y-4">
+            <Input label="Full Name" value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} required />
+            <Input label="Phone Number" value={formData.phone} onChange={(e) => setFormData({ ...formData, phone: e.target.value })} />
+            <div>
+              <label className="block text-sm font-semibold text-surface-700 mb-2">Bio / Headline</label>
+              <textarea
+                rows={3}
+                value={formData.bio}
+                onChange={(e) => setFormData({ ...formData, bio: e.target.value })}
+                className="w-full bg-surface-50 border border-surface-200 rounded-xl px-4 py-3 text-surface-900 focus:outline-none focus:ring-2 focus:ring-primary-500 transition-all resize-none"
+                placeholder="Tell us a bit about yourself..."
+              />
+            </div>
+            <div className="flex justify-end gap-3 pt-4">
+              <Button type="button" variant="secondary" onClick={() => setEditModal(false)}>Cancel</Button>
+              <Button type="submit" loading={savingProfile}>Save Changes</Button>
+            </div>
+          </form>
+        </Modal>
+
       </div>
     </AppLayout>
   );

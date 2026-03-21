@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { db } from '../firebase';
-import { collection, doc, updateDoc, onSnapshot } from 'firebase/firestore';
+import { collection, doc, updateDoc, onSnapshot, setDoc, query, where, serverTimestamp } from 'firebase/firestore';
 import toast from 'react-hot-toast';
 import { logAction } from '../utils/auditLogger';
 
@@ -20,6 +20,8 @@ function UserManagement() {
   const [selectedRole, setSelectedRole] = useState('');
   const [isUpdating, setIsUpdating] = useState(false);
 
+  const [requests, setRequests] = useState([]);
+
   useEffect(() => {
     // Real-time listener for users collection
     const unsubscribe = onSnapshot(collection(db, 'users'), (snapshot) => {
@@ -35,8 +37,48 @@ function UserManagement() {
       setLoading(false);
     });
 
-    return () => unsubscribe();
+    const q = query(collection(db, 'requests'), where('status', '==', 'pending'));
+    const unsubscribeReqs = onSnapshot(q, (snapshot) => {
+      setRequests(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
+    });
+
+    return () => {
+      unsubscribe();
+      unsubscribeReqs();
+    };
   }, []);
+
+  const handleApproveRequest = async (req) => {
+    try {
+      await setDoc(doc(db, 'users', req.id), {
+        email: req.email,
+        name: req.name || req.email.split('@')[0],
+        role: req.role_requested,
+        status: 'active',
+        createdAt: serverTimestamp()
+      });
+      await updateDoc(doc(db, 'requests', req.id), {
+        status: 'approved',
+        processedAt: serverTimestamp()
+      });
+      toast.success(`${req.name || req.email} approved as ${req.role_requested}`);
+    } catch (err) {
+      toast.error("Failed to approve request");
+      console.error(err);
+    }
+  };
+
+  const handleRejectRequest = async (req) => {
+    try {
+      await updateDoc(doc(db, 'requests', req.id), {
+        status: 'rejected',
+        processedAt: serverTimestamp()
+      });
+      toast.success("Request rejected");
+    } catch (err) {
+      toast.error("Failed to reject request");
+    }
+  };
 
   const openEditModal = (user) => {
     setEditModal({ open: true, user });
@@ -94,6 +136,49 @@ function UserManagement() {
           <Shield className="w-5 h-5 text-surface-500" />
           <p className="text-surface-500 text-sm">Real-time Admin Control Panel</p>
         </div>
+
+        {requests.length > 0 && (
+          <div className="mb-8">
+            <h3 className="text-lg font-bold text-surface-900 mb-4 flex items-center gap-2">
+              <span className="w-2 h-2 rounded-full bg-amber-500 animate-pulse"></span>
+              Pending Registration Requests
+            </h3>
+            <Card>
+              <div className="overflow-x-auto">
+                <table className="w-full text-left border-collapse">
+                  <thead>
+                    <tr className="border-b border-surface-200">
+                      <th className="px-6 py-4 text-xs font-semibold text-surface-500 uppercase tracking-wider">User details</th>
+                      <th className="px-6 py-4 text-xs font-semibold text-surface-500 uppercase tracking-wider">Requested Role</th>
+                      <th className="px-6 py-4 text-xs font-semibold text-surface-500 uppercase tracking-wider">Requested On</th>
+                      <th className="px-6 py-4 text-xs font-semibold text-surface-500 uppercase tracking-wider text-right">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-surface-100">
+                    {requests.map(req => (
+                      <tr key={req.id} className="hover:bg-amber-50/30 transition-colors">
+                        <td className="px-6 py-4">
+                          <div className="font-medium text-surface-900">{req.name || 'Unnamed'}</div>
+                          <div className="text-sm text-surface-500">{req.email}</div>
+                        </td>
+                        <td className="px-6 py-4">{getRoleBadge(req.role_requested)}</td>
+                        <td className="px-6 py-4 text-sm text-surface-500">
+                          {req.timestamp?.toDate ? new Date(req.timestamp.toDate()).toLocaleDateString() : 'N/A'}
+                        </td>
+                        <td className="px-6 py-4 text-right">
+                          <div className="flex justify-end gap-2">
+                            <Button size="sm" variant="secondary" onClick={() => handleRejectRequest(req)}>Reject</Button>
+                            <Button size="sm" variant="primary" onClick={() => handleApproveRequest(req)}>Approve</Button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </Card>
+          </div>
+        )}
 
         {loading ? (
           <TableSkeleton columns={5} rows={6} />

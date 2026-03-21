@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { db } from '../firebase';
+import { db, storage } from '../firebase';
 import { collection, addDoc, doc, setDoc, onSnapshot, query, orderBy, serverTimestamp, getDocs, where } from 'firebase/firestore';
+import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { useAuth } from '../contexts/AuthContext';
 import { logAction } from '../utils/auditLogger';
 import toast from 'react-hot-toast';
@@ -12,7 +13,7 @@ import Input from '../components/ui/Input';
 import Badge from '../components/ui/Badge';
 import { TableSkeleton } from '../components/ui/Skeleton';
 import EmptyState from '../components/ui/EmptyState';
-import { ClipboardList, PlusCircle, CheckCircle, Clock, Link as LinkIcon, BookOpen, AlertCircle } from 'lucide-react';
+import { ClipboardList, PlusCircle, CheckCircle, Clock, Link as LinkIcon, BookOpen, AlertCircle, FileText, Upload, Download } from 'lucide-react';
 
 export default function Assignments() {
   const { userRole, currentUser } = useAuth();
@@ -186,11 +187,18 @@ function GradingBoard({ assignment, onBack }) {
                   <td className="px-6 py-4 text-sm font-medium text-surface-900">{sub.studentEmail}</td>
                   <td className="px-6 py-4 text-sm text-surface-600">
                     <div className="whitespace-pre-wrap mb-2">{sub.content}</div>
-                    {sub.link && (
-                      <a href={sub.link} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 text-primary-600 hover:underline font-medium">
-                        <LinkIcon className="w-3 h-3" /> External Link / File Attachment
-                      </a>
-                    )}
+                    <div className="flex flex-col gap-1">
+                      {sub.fileUrl && (
+                        <a href={sub.fileUrl} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1.5 text-primary-600 hover:underline font-medium bg-primary-50 px-2 py-1 rounded w-fit">
+                          <FileText className="w-4 h-4" /> {sub.fileName || 'Attached File'} <Download className="w-3 h-3 ml-1" />
+                        </a>
+                      )}
+                      {sub.link && (
+                        <a href={sub.link} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1.5 text-primary-600 hover:underline font-medium px-2 py-1">
+                          <LinkIcon className="w-4 h-4" /> External Link
+                        </a>
+                      )}
+                    </div>
                   </td>
                   <td className="px-6 py-4">
                     <div className="flex items-center justify-end gap-2">
@@ -226,6 +234,8 @@ function StudentAssignments({ userId }) {
   const [selectedAsg, setSelectedAsg] = useState(null);
   const [submissionContent, setSubmissionContent] = useState('');
   const [submissionLink, setSubmissionLink] = useState('');
+  const [submissionFile, setSubmissionFile] = useState(null);
+  const [uploading, setUploading] = useState(false);
 
   useEffect(() => {
     const fetchAll = async () => {
@@ -245,10 +255,26 @@ function StudentAssignments({ userId }) {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if ((!submissionContent.trim() && !submissionLink.trim()) || !selectedAsg) return;
+    if ((!submissionContent.trim() && !submissionLink.trim() && !submissionFile) || !selectedAsg) return;
 
+    setUploading(true);
     try {
       const subId = `${selectedAsg.id}_${userId}`;
+      let fileUrl = '';
+      let fileName = '';
+
+      if (submissionFile) {
+        if (submissionFile.size > 10 * 1024 * 1024) {
+          toast.error("File size exceeds 10MB limit.");
+          setUploading(false);
+          return;
+        }
+        const storageRef = ref(storage, `assignments/${selectedAsg.id}/${userId}_${submissionFile.name}`);
+        await uploadBytes(storageRef, submissionFile);
+        fileUrl = await getDownloadURL(storageRef);
+        fileName = submissionFile.name;
+      }
+
       await setDoc(doc(db, 'submissions', subId), {
         assignmentId: selectedAsg.id,
         assignmentTitle: selectedAsg.title,
@@ -256,12 +282,18 @@ function StudentAssignments({ userId }) {
         studentEmail: userData.email,
         content: submissionContent,
         link: submissionLink,
+        fileUrl,
+        fileName,
         timestamp: serverTimestamp()
       }, { merge: true });
       
       toast.success('Assignment submitted successfully!');
-      setSelectedAsg(null); setSubmissionContent(''); setSubmissionLink('');
-    } catch { toast.error('Failed to submit'); }
+      setSelectedAsg(null); setSubmissionContent(''); setSubmissionLink(''); setSubmissionFile(null);
+    } catch (err) { 
+      toast.error(err.message || 'Failed to submit'); 
+    } finally {
+      setUploading(false);
+    }
   };
 
   return (
@@ -333,9 +365,27 @@ function StudentAssignments({ userId }) {
                 </div>
                 <Input label="External Link / Drive URL (Optional)" value={submissionLink} onChange={e=>setSubmissionLink(e.target.value)} icon={LinkIcon} placeholder="https://..." />
                 
+                <div>
+                  <label className="block text-sm font-semibold text-surface-700 mb-2">Upload File (PDF, Word, ZIP - Max 10MB)</label>
+                  <label className="flex items-center justify-center w-full min-h-[100px] border-2 border-dashed border-surface-300 rounded-xl cursor-pointer hover:border-primary-400 hover:bg-primary-50/50 transition-colors bg-surface-50">
+                    <div className="flex flex-col items-center justify-center py-4">
+                      <Upload className="w-6 h-6 text-surface-400 mb-2" />
+                      <p className="text-sm text-surface-500 font-medium text-center px-4">
+                        {submissionFile ? submissionFile.name : "Click to select or drag and drop a file"}
+                      </p>
+                    </div>
+                    <input 
+                      type="file" 
+                      className="hidden" 
+                      onChange={(e) => setSubmissionFile(e.target.files[0])}
+                      accept=".pdf,.doc,.docx,.zip,.rar,.txt,.jpg,.png"
+                    />
+                  </label>
+                </div>
+
                 <div className="flex gap-3 justify-end pt-4 border-t border-surface-100">
-                  <Button type="button" variant="secondary" onClick={() => {setSelectedAsg(null); setSubmissionContent(''); setSubmissionLink('');}}>Cancel</Button>
-                  <Button type="submit" icon={CheckCircle}>Confirm Hand In</Button>
+                  <Button type="button" variant="secondary" onClick={() => {setSelectedAsg(null); setSubmissionContent(''); setSubmissionLink(''); setSubmissionFile(null);}}>Cancel</Button>
+                  <Button type="submit" icon={CheckCircle} loading={uploading}>Confirm Hand In</Button>
                 </div>
               </form>
             </div>

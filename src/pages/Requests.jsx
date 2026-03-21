@@ -38,7 +38,7 @@ function StudentRequests({ userId }) {
   const [courseCode, setCourseCode] = useState('');
 
   useEffect(() => {
-    const q = query(collection(db, 'requests'), where('studentId', '==', userId));
+    const q = query(collection(db, 'student_requests'), where('studentId', '==', userId));
     const unsub = onSnapshot(q, (snap) => {
       const data = snap.docs.map(d => ({ id: d.id, ...d.data() }));
       data.sort((a,b) => (b.timestamp?.toMillis() || 0) - (a.timestamp?.toMillis() || 0));
@@ -71,7 +71,7 @@ function StudentRequests({ userId }) {
         payload.courseCode = courseCode;
       }
 
-      await addDoc(collection(db, 'requests'), payload);
+      await addDoc(collection(db, 'student_requests'), payload);
       toast.success('Request submitted!');
       setIsModalOpen(false);
       setDescription(''); setDateFrom(''); setDateTo(''); setCourseCode('');
@@ -195,7 +195,7 @@ function StaffAdminRequests({ userId, userRole }) {
   const [adminComment, setAdminComment] = useState('');
 
   useEffect(() => {
-    const q = query(collection(db, 'requests'), orderBy('timestamp', 'desc'));
+    const q = query(collection(db, 'student_requests'), orderBy('timestamp', 'desc'));
     const unsub = onSnapshot(q, (snap) => {
       setRequests(snap.docs.map(d => ({ id: d.id, ...d.data() })));
       setLoading(false);
@@ -207,14 +207,14 @@ function StaffAdminRequests({ userId, userRole }) {
     e.preventDefault();
     const { req, action } = actionModal;
     try {
-      await setDoc(doc(db, 'requests', req.id), {
+      await setDoc(doc(db, 'student_requests', req.id), {
         status: action,
         adminComment,
         processedBy: userId,
         processedAt: serverTimestamp()
       }, { merge: true });
       
-      await logAction('PROCESSED_REQUEST', 'requests', req.id, { action, student: req.studentEmail });
+      await logAction('PROCESSED_REQUEST', 'student_requests', req.id, { action, student: req.studentEmail });
       toast.success(`Request marked as ${action}`);
       setActionModal({ open: false, req: null, action: null });
       setAdminComment('');
